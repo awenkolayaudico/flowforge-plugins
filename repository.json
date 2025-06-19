@@ -7,8 +7,8 @@
       "developer": "NAMA_ANDA",
       "description": "Plugin contoh sederhana yang diunduh dari marketplace.",
       "category": "utilities",
-      "python_file_url": "URL_UNTUK_HELLO_WORLD_PLUGIN.PY",
-      "manifest_file_url": "URL_UNTUK_PLUGIN_MANIFEST.JSON"
+      "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/sample_plugin/hello_world_plugin.py",
+      "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/sample_plugin/plugin_manifest.json"
     }
   ]
 }
