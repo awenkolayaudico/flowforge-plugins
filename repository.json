@@ -4,7 +4,7 @@
     {
       "name": "Hello World Plugin",
       "version": "1.0.0",
-      "developer": "NAMA_ANDA",
+      "developer": "AWENK AUDICO",
       "description": "Plugin contoh sederhana yang diunduh dari marketplace.",
       "category": "utilities",
       "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/sample_plugin/hello_world_plugin.py",
