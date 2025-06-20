@@ -4,13 +4,14 @@ from typing import Any, Dict, List, Optional
 import os
 import sys
 import time
-import random # Tambahkan untuk pemilihan acak
-import threading # Untuk menjalankan pemutaran di thread terpisah agar UI tidak freeze
+import random
+import threading
 
 # Import GUI components
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
+from tkinter import messagebox # Pastikan messagebox diimpor di sini
 
 # PENTING: Periksa apakah kita berjalan dalam konteks FlowForge atau standalone.
 if __name__ == "__main__":
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     try:
         from plugins.base_plugin import BasePlugin
         from core.data_models import DataPayload, PluginSettingSpec, ArticleData
-        from app.gui.utils import ToolTip # Impor ToolTip untuk standalone
+        from app.gui.utils import ToolTip
         # Mocking app_settings dan logger untuk pengujian standalone
         class MockSettingsManager:
             def __init__(self):
@@ -55,10 +56,10 @@ if __name__ == "__main__":
                     'show_asset_preview': lambda path, cat: print(f"Mock Preview: {path} ({cat})"),
                     'clear_preview': lambda: print("Mock Preview: Cleared")
                 })()
-                self.workflow_editor_tab = type('MockWorkflowEditorTab', (object,), {'_open_asset_selection_dialog': lambda *args, **kwargs: None})()
+                self.workflow_editor_tab = type('MockWorkflowEditorTab', (object,), {'_open_asset_selection_dialog': lambda *args, **kwargs: ["mock_path"]})() # Mock kembalikan path
             def log_message_to_queue(self, level, source, msg):
                 print(f"[{level}] [{source}] {msg}")
-            def after(self, ms, func, *args): # Mock after for standalone
+            def after(self, ms, func, *args):
                 func(*args)
 
         # Mocking pygame.mixer untuk standalone test
@@ -91,7 +92,9 @@ if __name__ == "__main__":
 else:
     from plugins.base_plugin import BasePlugin
     from core.data_models import DataPayload, PluginSettingSpec, ArticleData
-    from app.gui.utils import ToolTip # Impor ToolTip untuk lingkungan normal
+    from app.gui.utils import ToolTip
+    # Pastikan messagebox juga diimpor di sini untuk lingkungan normal
+    from tkinter import messagebox
     try:
         import pygame
     except ImportError:
@@ -112,16 +115,12 @@ class MP3PlayerPlugin(BasePlugin):
         self.stop_playback_event = threading.Event()
         self.playback_thread: Optional[threading.Thread] = None
 
-        self._current_app_instance: Any = None # Akan disuntikkan dari MainApp
+        self._current_app_instance: Any = None
 
-    # Perbaikan: Hapus panggilan super().set_app_services dari sini
     def set_app_services(self, app_instance: Any, settings_manager: Any, error_logger: Any):
         """Menyuntikkan referensi ke MainApp dan layanan inti."""
-        # super().set_app_services(app_instance, settings_manager, error_logger) # Hapus baris ini
-        self._current_app_instance = app_instance # Simpan referensi app_instance
+        self._current_app_instance = app_instance
 
-    # Plugin ini tidak memerlukan konfigurasi GUI standar di Workflow Editor
-    # karena ia akan memiliki tab UI-nya sendiri.
     def get_gui_config_spec(self) -> List[PluginSettingSpec]:
         return []
 
@@ -135,33 +134,30 @@ class MP3PlayerPlugin(BasePlugin):
         data_payload.last_plugin_status[self.name] = {"success": True, "message": "Plugin hanya berfungsi melalui UI tab-nya."}
         return data_payload
 
-    # --- AWAL PERBAIKAN: Implementasi create_tab_ui ---
     def create_tab_ui(self, master_notebook: ttk.Notebook, app_instance: Any) -> Optional[ttk.Frame]:
         """
         Membuat antarmuka pengguna kustom untuk plugin MP3 Player ini.
         """
-        self._current_app_instance = app_instance # Pastikan referensi app_instance tersedia
+        self._current_app_instance = app_instance
 
         tab_frame = ttk.Frame(master_notebook, padding=15)
         tab_frame.grid_columnconfigure(0, weight=1)
-        tab_frame.grid_columnconfigure(1, weight=1) # Untuk kolom detail
+        tab_frame.grid_columnconfigure(1, weight=1)
 
-        # Bagian Pemilihan Folder Musik
         folder_selection_frame = ttk.LabelFrame(tab_frame, text="Folder Musik", padding=10)
         folder_selection_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0,10))
         folder_selection_frame.grid_columnconfigure(0, weight=1)
 
-        self.music_folder_var = tk.StringVar(value=self.music_folder_path) # Inisialisasi dari atribut
+        self.music_folder_var = tk.StringVar(value=self.music_folder_path)
 
         ttk.Label(folder_selection_frame, text="Jalur Folder Musik:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        folder_entry = ttk.Entry(folder_selection_frame, textvariable=self.music_folder_var, state=DISABLED) # Biasanya read-only
+        folder_entry = ttk.Entry(folder_selection_frame, textvariable=self.music_folder_var, state=DISABLED)
         folder_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
         
         select_folder_btn = ttk.Button(folder_selection_frame, text="Pilih Folder...", command=self._select_music_folder, bootstyle="info")
         select_folder_btn.grid(row=0, column=2, padx=5, pady=5)
         ToolTip(select_folder_btn, "Pilih folder yang berisi file musik Anda dari kategori aset.")
 
-        # Bagian Kontrol Pemutar
         playback_control_frame = ttk.LabelFrame(tab_frame, text="Kontrol Pemutar", padding=10)
         playback_control_frame.grid(row=1, column=0, sticky="nsew", pady=(0,10), padx=(0,5))
         playback_control_frame.grid_columnconfigure(0, weight=1)
@@ -185,7 +181,6 @@ class MP3PlayerPlugin(BasePlugin):
         stop_btn.grid(row=0, column=2, padx=5)
         ToolTip(stop_btn, "Hentikan pemutaran audio.")
 
-        # Bagian Informasi Playlist
         playlist_info_frame = ttk.LabelFrame(tab_frame, text="Info Playlist", padding=10)
         playlist_info_frame.grid(row=1, column=1, sticky="nsew", pady=(0,10), padx=(5,0))
         playlist_info_frame.grid_rowconfigure(0, weight=1)
@@ -197,10 +192,9 @@ class MP3PlayerPlugin(BasePlugin):
         playlist_scrollbar.grid(row=0, column=1, sticky="ns")
         self.playlist_listbox.config(yscrollcommand=playlist_scrollbar.set)
         
-        # Load ulang playlist saat tab dipilih (atau ketika folder diubah)
         master_notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed_in_plugin)
         
-        self._update_playlist_ui() # Perbarui UI playlist saat pertama kali dimuat
+        self._update_playlist_ui()
         
         return tab_frame
 
@@ -209,7 +203,7 @@ class MP3PlayerPlugin(BasePlugin):
         selected_tab_id = event.widget.select()
         selected_tab_text = event.widget.tab(selected_tab_id, "text")
         
-        if selected_tab_text == f"🔌 {self.name}": # Jika tab ini yang aktif
+        if selected_tab_text == f"🔌 {self.name}":
             self._log(f"Tab '{self.name}' mendapatkan fokus. Memperbarui UI pemutar.")
             self._update_playlist_ui()
 
@@ -221,8 +215,8 @@ class MP3PlayerPlugin(BasePlugin):
             field_name="music_folder",
             label="Folder Musik",
             type="folderpath",
-            asset_filter_category=["Music Tracks", "Efek Suara", "Audio Kustom"], # Kategori audio
-            file_selection_type="folder", # Pilih folder, bukan file
+            asset_filter_category=["Music Tracks", "Efek Suara", "Audio Kustom"],
+            file_selection_type="folder",
             tooltip="Pilih folder yang berisi file musik dari Asset Manager."
         )
         
@@ -244,7 +238,8 @@ class MP3PlayerPlugin(BasePlugin):
             else:
                 self._log("Pemilihan folder musik dibatalkan.")
         else:
-            messagebox.showwarning("Fitur Tidak Tersedia", "Dialog pemilihan aset tidak dapat dibuka. Pastikan Workflow Editor Tab terinisialisasi.", parent=self._current_app_instance) # Tambahkan parent
+            # Perbaikan: Tambahkan parent ke messagebox untuk memastikan terlihat
+            messagebox.showwarning("Fitur Tidak Tersedia", "Dialog pemilihan aset tidak dapat dibuka. Pastikan Workflow Editor Tab terinisialisasi.", parent=self._current_app_instance)
             self._log("Peringatan: Tidak dapat mengakses _open_asset_selection_dialog dari WorkflowEditorTab.")
 
     def _load_playlist_from_folder(self):
@@ -294,6 +289,7 @@ class MP3PlayerPlugin(BasePlugin):
     def _play_random_track(self):
         """Memulai pemutaran lagu secara acak."""
         if not self.current_playlist:
+            # Perbaikan: messagebox diimpor di bagian atas
             messagebox.showwarning("Playlist Kosong", "Tidak ada lagu di playlist. Harap pilih folder musik yang berisi file audio.", parent=self._current_app_instance)
             self._log("Tidak dapat memutar: playlist kosong.")
             return
