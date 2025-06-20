@@ -1,4 +1,3 @@
-
 # plugins/text_processing/GoogleTranslatePlugin/google_translate_plugin.py
 
 from typing import Any, Dict, List, Optional
@@ -35,13 +34,8 @@ else:
     from plugins.base_plugin import BasePlugin
     from core.data_models import DataPayload, PluginSettingSpec, ArticleData
 
-# Pastikan googletrans diimpor di sini. Ini akan dicari di venv plugin.
-try:
-    from googletrans import Translator
-except ImportError:
-    # Ini akan terjadi jika googletrans belum terinstal di venv plugin
-    # atau jika kita menjalankan ini di lingkungan yang salah tanpa dependensi.
-    Translator = None # Set ke None agar bisa diperiksa nanti
+# Hapus: try-except import Translator di sini.
+# Import Translator akan dilakukan di dalam metode run().
 
 class GoogleTranslatePlugin(BasePlugin):
     """
@@ -122,22 +116,17 @@ class GoogleTranslatePlugin(BasePlugin):
     def run(self, data_payload: DataPayload, app_settings: Dict[str, Any]) -> DataPayload:
         self._log("Memulai eksekusi plugin 'Google Translate'.")
 
-        if Translator is None:
+        # PENTING: Lakukan impor Translator di sini, di dalam metode run()
+        try:
+            from googletrans import Translator
+            self.translator = Translator()
+        except ImportError:
             self._log("ERROR: Pustaka 'googletrans' tidak ditemukan. Pastikan sudah terinstal di virtual environment plugin ini.")
             app_settings.get("error_logger").log_error(
                 f"Plugin '{self.name}' gagal: Pustaka 'googletrans' tidak ditemukan.", exc_info=False
             )
             data_payload.last_plugin_status[self.name] = {"success": False, "error_message": "Pustaka 'googletrans' tidak ditemukan."}
             raise ImportError("Pustaka 'googletrans' tidak terinstal untuk Google Translate Plugin.") # Picu error agar WorkflowExecutor menangani
-
-        if not data_payload.articles:
-            self._log("Tidak ada artikel dalam payload untuk diterjemahkan. Melewatkan plugin.")
-            data_payload.last_plugin_status[self.name] = {"success": True, "message": "Tidak ada artikel untuk diproses."}
-            return data_payload
-
-        # Inisialisasi translator di sini agar error terkait koneksi/API terjadi di run-time
-        try:
-            self.translator = Translator()
         except Exception as e:
             self._log(f"ERROR: Gagal menginisialisasi Translator: {e}. Terjemahan tidak dapat dilakukan.")
             app_settings.get("error_logger").log_error(
@@ -145,6 +134,11 @@ class GoogleTranslatePlugin(BasePlugin):
             )
             data_payload.last_plugin_status[self.name] = {"success": False, "error_message": f"Gagal inisialisasi translator: {e}"}
             raise # Re-raise untuk penanganan error di WorkflowExecutor
+
+        if not data_payload.articles:
+            self._log("Tidak ada artikel dalam payload untuk diterjemahkan. Melewatkan plugin.")
+            data_payload.last_plugin_status[self.name] = {"success": True, "message": "Tidak ada artikel untuk diproses."}
+            return data_payload
 
         src_lang = self.settings.get("source_language")
         dest_lang = self.settings.get("target_language")
@@ -180,7 +174,7 @@ class GoogleTranslatePlugin(BasePlugin):
                         self._log(f"  Konten terfilter diterjemahkan.")
                     else:
                         self._log("  Peringatan: Opsi terjemahkan konten terfilter aktif, tetapi tidak ada konten terfilter atau mentah. Melewatkan.")
-                
+
                 # Tambahkan metadata terjemahan
                 article.metadata[f"translated_from_{src_lang}"] = True
                 article.metadata[f"translated_to_{dest_lang}"] = True
