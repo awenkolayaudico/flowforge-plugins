@@ -1,6 +1,15 @@
 {
   "repository_name": "FlowForge Community Plugins",
   "plugins": [{
+      "name": "Test Gagal",
+      "version": "1.0.0",
+      "developer": "FlowForge Community",
+      "description": "Test Gagal",
+      "category": "TEST",
+      "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/TESGAGAL/tesgaga.py",
+      "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/TESGAGAL/plugin_manifest.json",
+      "requirements": ""
+    },{
       "name": "manual_input_plugin",
       "version": "1.0.0",
       "developer": "FlowForge Community",
