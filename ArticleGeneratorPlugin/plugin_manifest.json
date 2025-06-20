@@ -1,1 +1,10 @@
-
+{
+    "plugin_name": "Article Generator",
+    "developer": "AWENK",
+    "version": "1.0.0",
+    "description": "Menghasilkan artikel dengan judul dan konten bergilir secara sinkron, menghindari duplikasi berurutan.",
+    "permissions": {
+        "file_write": "Plugin ini menulis file artikel ke folder output yang ditentukan.",
+        "network_access": "Tidak ada (plugin ini tidak memerlukan akses internet)."
+    }
+}
