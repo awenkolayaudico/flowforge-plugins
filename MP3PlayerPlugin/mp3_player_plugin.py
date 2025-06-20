@@ -114,9 +114,10 @@ class MP3PlayerPlugin(BasePlugin):
 
         self._current_app_instance: Any = None # Akan disuntikkan dari MainApp
 
+    # Perbaikan: Hapus panggilan super().set_app_services dari sini
     def set_app_services(self, app_instance: Any, settings_manager: Any, error_logger: Any):
         """Menyuntikkan referensi ke MainApp dan layanan inti."""
-        super().set_app_services(app_instance, settings_manager, error_logger)
+        # super().set_app_services(app_instance, settings_manager, error_logger) # Hapus baris ini
         self._current_app_instance = app_instance # Simpan referensi app_instance
 
     # Plugin ini tidak memerlukan konfigurasi GUI standar di Workflow Editor
@@ -211,15 +212,11 @@ class MP3PlayerPlugin(BasePlugin):
         if selected_tab_text == f"🔌 {self.name}": # Jika tab ini yang aktif
             self._log(f"Tab '{self.name}' mendapatkan fokus. Memperbarui UI pemutar.")
             self._update_playlist_ui()
-            # Juga bisa resume pemutaran otomatis di sini jika diinginkan
-            # if self.is_playing_randomly and not pygame.mixer.music.get_busy():
-            #     self._start_playback_thread() # Restart thread jika berhenti
 
     def _select_music_folder(self):
         """
         Membuka dialog pemilihan folder aset yang terintegrasi dengan Asset Manager.
         """
-        # Kita perlu meniru PluginSettingSpec untuk memicu dialog kustom
         mock_spec = PluginSettingSpec(
             field_name="music_folder",
             label="Folder Musik",
@@ -229,18 +226,14 @@ class MP3PlayerPlugin(BasePlugin):
             tooltip="Pilih folder yang berisi file musik dari Asset Manager."
         )
         
-        # Panggil dialog pemilihan aset dari WorkflowEditorTab (meskipun kita di MP3 Player)
-        # Ini tricky karena _open_asset_selection_dialog ada di WorkflowEditorTab
-        # Kita butuh referensi langsung ke metode itu
         if hasattr(self._current_app_instance, 'workflow_editor_tab') and \
            hasattr(self._current_app_instance.workflow_editor_tab, '_open_asset_selection_dialog'):
             
-            # Kita ingin pengguna memilih FOLDER, bukan FILE
             selected_paths = self._current_app_instance.workflow_editor_tab._open_asset_selection_dialog(
                 allowed_categories=mock_spec.asset_filter_category,
-                parent_dialog=self._current_app_instance, # Parent dialog bisa app utama
-                selection_type="folder", # Pastikan memilih folder
-                allow_multiple_selection=False # Hanya satu folder
+                parent_dialog=self._current_app_instance,
+                selection_type="folder",
+                allow_multiple_selection=False
             )
             
             if selected_paths and len(selected_paths) > 0:
@@ -251,7 +244,7 @@ class MP3PlayerPlugin(BasePlugin):
             else:
                 self._log("Pemilihan folder musik dibatalkan.")
         else:
-            messagebox.showwarning("Fitur Tidak Tersedia", "Dialog pemilihan aset tidak dapat dibuka. Pastikan Workflow Editor Tab terinisialisasi.")
+            messagebox.showwarning("Fitur Tidak Tersedia", "Dialog pemilihan aset tidak dapat dibuka. Pastikan Workflow Editor Tab terinisialisasi.", parent=self._current_app_instance) # Tambahkan parent
             self._log("Peringatan: Tidak dapat mengakses _open_asset_selection_dialog dari WorkflowEditorTab.")
 
     def _load_playlist_from_folder(self):
@@ -262,7 +255,6 @@ class MP3PlayerPlugin(BasePlugin):
             self._update_playlist_ui()
             return
         
-        # Ekstensi yang diizinkan untuk pemutaran musik
         allowed_audio_exts = [".mp3", ".wav", ".aac"] 
 
         try:
@@ -270,7 +262,7 @@ class MP3PlayerPlugin(BasePlugin):
                 file_path = os.path.join(self.music_folder_path, filename)
                 if os.path.isfile(file_path) and os.path.splitext(filename)[1].lower() in allowed_audio_exts:
                     self.current_playlist.append(file_path)
-            random.shuffle(self.current_playlist) # Acak playlist
+            random.shuffle(self.current_playlist)
             self._log(f"Playlist dimuat: {len(self.current_playlist)} lagu dari {self.music_folder_path}")
         except Exception as e:
             self._log(f"Error memuat playlist dari {self.music_folder_path}: {e}")
@@ -295,7 +287,7 @@ class MP3PlayerPlugin(BasePlugin):
             self.current_track_label.config(text=f"Memutar: {current_track_name}")
             self.playlist_listbox.selection_clear(0, tk.END)
             self.playlist_listbox.selection_set(self.current_track_index)
-            self.playlist_listbox.see(self.current_track_index) # Gulir ke lagu yang sedang diputar
+            self.playlist_listbox.see(self.current_track_index)
         else:
             self.current_track_label.config(text="Siap memutar")
 
@@ -306,14 +298,14 @@ class MP3PlayerPlugin(BasePlugin):
             self._log("Tidak dapat memutar: playlist kosong.")
             return
         
-        self._stop_playback() # Hentikan pemutaran sebelumnya jika ada
+        self._stop_playback()
         self.is_playing_randomly = True
         self.stop_playback_event.clear()
         self._start_playback_thread()
 
     def _play_next_random_track(self):
         """Memutar lagu acak berikutnya."""
-        self._stop_playback() # Hentikan lagu saat ini
+        self._stop_playback()
         self.is_playing_randomly = True
         self.stop_playback_event.clear()
         self._start_playback_thread()
@@ -341,41 +333,36 @@ class MP3PlayerPlugin(BasePlugin):
                 self.is_playing_randomly = False
                 break
 
-            # Pilih lagu secara acak
             self.current_track_index = random.randrange(len(self.current_playlist))
             current_track_path = self.current_playlist[self.current_track_index]
             
-            self._current_app_instance.after(0, lambda: self._update_playlist_ui()) # Update UI dari main thread
+            self._current_app_instance.after(0, lambda: self._update_playlist_ui())
 
             try:
                 if pygame.mixer.music.get_busy():
-                    pygame.mixer.music.stop() # Hentikan lagu sebelumnya jika ada
+                    pygame.mixer.music.stop()
                 pygame.mixer.music.load(current_track_path)
                 pygame.mixer.music.play()
                 self._log(f"Memutar: {os.path.basename(current_track_path)}")
 
-                # Tunggu sampai lagu selesai atau stop_event diatur
                 while pygame.mixer.music.get_busy() and not self.stop_playback_event.is_set():
-                    time.sleep(0.5) # Cek setiap 0.5 detik
+                    time.sleep(0.5)
 
             except pygame.error as e:
                 self._log(f"Pygame Error saat memutar {os.path.basename(current_track_path)}: {e}")
                 self._current_app_instance.error_logger.log_error(f"Pygame error in MP3 Player: {e}", exc_info=True)
-                # Lewati lagu ini dan coba lagu berikutnya
             except Exception as e:
                 self._log(f"Error tidak terduga saat memutar {os.path.basename(current_track_path)}: {e}")
                 self._current_app_instance.error_logger.log_error(f"Unexpected error in MP3 Player playback: {e}", exc_info=True)
                 
-            # Jika berhenti karena stop_playback_event, keluar dari loop
             if self.stop_playback_event.is_set():
                 break
             
-            # Beri jeda singkat sebelum lagu berikutnya
             time.sleep(1) 
         
         self._log("Loop pemutaran acak dihentikan.")
         self.is_playing_randomly = False
-        self._current_app_instance.after(0, lambda: self._update_playlist_ui()) # Update UI setelah loop berhenti
+        self._current_app_instance.after(0, lambda: self._update_playlist_ui())
 
     def _stop_playback(self):
         """Menghentikan semua pemutaran."""
@@ -384,45 +371,5 @@ class MP3PlayerPlugin(BasePlugin):
             pygame.mixer.music.stop()
             self._log("Pemutaran audio dihentikan.")
         self.is_playing_randomly = False
-        self.current_track_index = -1 # Reset indeks
+        self.current_track_index = -1
         self._update_playlist_ui()
-    # --- AKHIR PERBAIKAN ---
-
-# Contoh penggunaan standalone untuk pengujian
-if __name__ == "__main__":
-    # Catatan: Pengujian standalone untuk plugin UI kustom agak kompleks
-    # karena membutuhkan lingkungan Tkinter dan Pygame yang berfungsi.
-    # Mocking di atas akan mencoba mensimulasikannya.
-    # Untuk pengujian menyeluruh, jalankan di aplikasi FlowForge.
-
-    print("--- Pengujian Plugin MP3 Player (Standalone) ---")
-    mock_app = MockApp()
-    plugin = MP3PlayerPlugin()
-    plugin.set_app_services(mock_app, mock_app.settings_manager, mock_app.error_logger)
-
-    # Inisialisasi jendela Tkinter untuk menampilkan tab UI
-    root = ttk.Window(themename="superhero")
-    root.title("MP3 Player Standalone Test")
-    root.geometry("600x400")
-
-    notebook = ttk.Notebook(root)
-    notebook.pack(fill=BOTH, expand=True)
-
-    # Panggil create_tab_ui untuk mendapatkan frame tab
-    mp3_player_tab_frame = plugin.create_tab_ui(notebook, mock_app)
-    if mp3_player_tab_frame:
-        notebook.add(mp3_player_tab_frame, text="🔌 MP3 Player Test")
-
-    # Simulasi pemilihan folder (Anda harus memiliki folder ini secara fisik)
-    # Misalnya, buat folder 'C:\Temp\TestMusic' dan masukkan beberapa mp3/wav
-    test_music_folder = os.path.join(os.path.expanduser("~"), "Documents", "VidShort_Output", "Assets", "music_tracks")
-    if os.path.exists(test_music_folder):
-        plugin.music_folder_path = test_music_folder
-        plugin._load_playlist_from_folder()
-        plugin._update_playlist_ui() # Perbarui UI setelah memuat playlist
-
-    root.mainloop()
-
-    # Pastikan untuk menghentikan pemutaran jika thread masih berjalan setelah menutup jendela
-    plugin._stop_playback()
-    print("--- Pengujian MP3 Player Selesai ---")
