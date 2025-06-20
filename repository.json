@@ -1,6 +1,15 @@
 {
   "repository_name": "FlowForge Community Plugins",
-  "plugins": [
+  "plugins": [{
+      "name": "Workflow Counter",
+      "version": "1.0.0",
+      "developer": "FlowForge Community",
+      "description": "Workflow Counter",
+      "category": "Workflow Counter",
+      "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/workflow_counter_plugin/workflow_counter_plugin.py",
+      "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/workflow_counter_plugin/plugin_manifest.json",
+      "requirements": ""
+    },
             {
       "name": "gTTS",
       "version": "1.0.0",
