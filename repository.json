@@ -2,13 +2,14 @@
   "repository_name": "FlowForge Community Plugins",
   "plugins": [
     {
-      "name": "Hello World Plugin",
+      "name": "MP3 Player",
       "version": "1.0.0",
-      "developer": "AWENK AUDICO",
-      "description": "Plugin contoh sederhana yang diunduh dari marketplace.",
-      "category": "utilities",
-      "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/sample_plugin/hello_world_plugin.py",
-      "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/sample_plugin/plugin_manifest.json"
+      "developer": "FlowForge Community",
+      "description": "MP3 Player",
+      "category": "MUSIC",
+      "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/MP3PlayerPlugin/mp3_player_plugin.py",
+      "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/MP3PlayerPlugin/plugin_manifest.json",
+      "requirements": "googletrans==4.0.0-rc1"
     },
     {
       "name": "Google Translate",
