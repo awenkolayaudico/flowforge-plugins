@@ -1,6 +1,16 @@
 {
   "repository_name": "FlowForge Community Plugins",
   "plugins": [
+        {
+      "name": "Article Generato",
+      "version": "1.0.0",
+      "developer": "FlowForge Community",
+      "description": "Article Generato",
+      "category": "Article",
+      "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/ArticleGeneratorPlugin/article_generator_plugin.py",
+      "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/ArticleGeneratorPlugin/plugin_manifest.json",
+      "requirements": ""
+    },
     {
       "name": "MP3 Player",
       "version": "1.0.0",
