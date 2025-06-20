@@ -40,7 +40,7 @@ if __name__ == "__main__":
                 if not os.path.exists(os.path.join(self._app_settings["music_tracks_folder"], "sample_music.mp3")):
                     with open(os.path.join(self._app_settings["music_tracks_folder"], "sample_music.mp3"), "w") as f: f.write("dummy")
                 if not os.path.exists(os.path.join(self._app_settings["output_folder"], "Assets", "sound_effects", "ding.wav")):
-                    with open(os.path.join(self._app_settings["output_folder"], "Assets", "sound_effects", "ding.wav"), "w") as f: f.write("dummy")
+                    with open(os.path.join(os.path.join(self._app_settings["output_folder"], "Assets", "sound_effects"), "ding.wav"), "w") as f: f.write("dummy")
 
             def get_all_design_presets(self): return []
             def get_design_preset(self, name: str): return None
