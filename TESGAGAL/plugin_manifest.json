@@ -1,9 +1,9 @@
 {
-    "plugin_name": "MP3 Player",
+    "plugin_name": "Test Gagal",
     "developer": "FlowForge Community",
     "version": "1.0.0",
     "permissions": {
-        "file_read": "Diperlukan untuk membaca file audio dari disk.",
+        "file_read": "Test Gagal",
         "network_access": "Tidak diperlukan.",
         "file_write": "Tidak diperlukan."
     }
