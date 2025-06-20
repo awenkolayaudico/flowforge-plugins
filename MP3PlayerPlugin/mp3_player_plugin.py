@@ -141,6 +141,11 @@ class MP3PlayerPlugin(BasePlugin):
         self.playback_mode_var = tk.StringVar(value=self.playback_mode) # Variable untuk Radiobutton
         self.volume_var = tk.DoubleVar(value=0.5) # Default volume 50% (0.0 - 1.0)
 
+        # Hapus dua baris berikut dari __init__
+        # if self.music_category_name:
+        #     self._load_playlist_from_folder()
+        # self._update_playlist_ui()
+
     def set_app_services(self, app_instance: Any, settings_manager: Any, error_logger: Any):
         self._current_app_instance = app_instance
         # Muat volume yang tersimpan saat service diset
@@ -248,6 +253,7 @@ class MP3PlayerPlugin(BasePlugin):
 
         master_notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed_in_plugin)
         
+        # Panggil ini DI SINI, setelah self.playlist_listbox dibuat
         if self.music_category_name:
             self._load_playlist_from_folder() 
         self._update_playlist_ui()
@@ -390,7 +396,6 @@ class MP3PlayerPlugin(BasePlugin):
             self._log("Tidak ada kategori musik yang dipilih. Playlist kosong.")
             self._update_playlist_ui()
             return
-
         # Dapatkan jalur folder fisik dari SettingsManager
         folder_path = self._current_app_instance.settings_manager.get_asset_category_path(self.music_category_name)
 
