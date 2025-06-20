@@ -9,6 +9,16 @@
       "category": "utilities",
       "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/sample_plugin/hello_world_plugin.py",
       "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/sample_plugin/plugin_manifest.json"
+    },
+    {
+      "name": "Google Translate",
+      "version": "1.0.0",
+      "developer": "FlowForge Community",
+      "description": "Menerjemahkan teks dari artikel menggunakan Google Translate (gratis, tanpa API Key).",
+      "category": "text_processing",
+      "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/GoogleTranslatePlugin/google_translate_plugin.py",
+      "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/GoogleTranslatePlugin/plugin_manifest.json",
+      "requirements": "googletrans==4.0.0-rc1"
     }
   ]
 }
