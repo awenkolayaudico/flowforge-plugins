@@ -4,6 +4,13 @@ from typing import Any, Dict, List, Optional
 import os
 import sys
 import time
+import random # Tambahkan untuk pemilihan acak
+import threading # Untuk menjalankan pemutaran di thread terpisah agar UI tidak freeze
+
+# Import GUI components
+import tkinter as tk
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 
 # PENTING: Periksa apakah kita berjalan dalam konteks FlowForge atau standalone.
 if __name__ == "__main__":
@@ -14,23 +21,63 @@ if __name__ == "__main__":
     try:
         from plugins.base_plugin import BasePlugin
         from core.data_models import DataPayload, PluginSettingSpec, ArticleData
+        from app.gui.utils import ToolTip # Impor ToolTip untuk standalone
         # Mocking app_settings dan logger untuk pengujian standalone
         class MockSettingsManager:
+            def __init__(self):
+                self._custom_asset_categories = {
+                    "Music Tracks": type('CustomCat', (object,), {'name': 'Music Tracks', 'folder_name': 'music_tracks', 'allowed_extensions': ['.mp3', '.wav', '.aac']})()
+                }
+                self._app_settings = {
+                    "output_folder": os.path.join(os.path.expanduser("~"), "Documents", "VidShort_Output")
+                }
             def get_all_design_presets(self): return []
             def get_design_preset(self, name: str): return None
+            def get_all_custom_asset_categories(self): return list(self._custom_asset_categories.values())
+            def get_custom_asset_category(self, name: str): return self._custom_asset_categories.get(name)
+            def get_asset_category_path(self, category_name: str):
+                if category_name == "Music Tracks":
+                    return os.path.join(self._app_settings["output_folder"], "Assets", "music_tracks")
+                custom_cat = self.get_custom_asset_category(category_name)
+                if custom_cat:
+                    return os.path.join(self._app_settings["output_folder"], "Assets", custom_cat.folder_name)
+                return os.path.join(self._app_settings["output_folder"], "Assets", "temp_unknown")
+
         class MockApp:
             def __init__(self):
                 self.settings_manager = MockSettingsManager()
                 self.error_logger = type('MockErrorLogger', (), {'log_error': lambda *args, **kwargs: print(f"Mock Error: {args[0]}"), 'log_critical': lambda *args, **kwargs: print(f"Mock Critical: {args[0]}")})()
+                # Mock untuk AssetManagerTab dan WorkflowEditorTab
+                self.asset_manager_tab = type('MockAssetManagerTab', (object,), {
+                    'default_asset_categories_info': {
+                        "Music Tracks": {"folder_key": "music_tracks_folder", "extensions": [".mp3", ".wav", ".aac"]},
+                    },
+                    'show_asset_preview': lambda path, cat: print(f"Mock Preview: {path} ({cat})"),
+                    'clear_preview': lambda: print("Mock Preview: Cleared")
+                })()
+                self.workflow_editor_tab = type('MockWorkflowEditorTab', (object,), {'_open_asset_selection_dialog': lambda *args, **kwargs: None})()
             def log_message_to_queue(self, level, source, msg):
                 print(f"[{level}] [{source}] {msg}")
+            def after(self, ms, func, *args): # Mock after for standalone
+                func(*args)
+
         # Mocking pygame.mixer untuk standalone test
         class MockMixerMusic:
-            def load(self, path): print(f"MockMixerMusic: Memuat {path}")
-            def play(self): print("MockMixerMusic: Memutar")
-            def get_busy(self): return True
-            def stop(self): print("MockMixerMusic: Menghentikan")
-            def fadeout(self, ms): print(f"MockMixerMusic: Fadeout {ms}ms")
+            _loaded_path = None
+            _is_playing = False
+            def load(self, path): 
+                self._loaded_path = path
+                print(f"MockMixerMusic: Memuat {path}")
+            def play(self): 
+                self._is_playing = True
+                print("MockMixerMusic: Memutar")
+            def get_busy(self): return self._is_playing
+            def stop(self): 
+                self._is_playing = False
+                print("MockMixerMusic: Menghentikan")
+            def fadeout(self, ms): 
+                print(f"MockMixerMusic: Fadeout {ms}ms")
+                self.stop()
         class MockMixer:
             def __init__(self): self.music = MockMixerMusic()
             def get_init(self): return True
@@ -44,173 +91,338 @@ if __name__ == "__main__":
 else:
     from plugins.base_plugin import BasePlugin
     from core.data_models import DataPayload, PluginSettingSpec, ArticleData
-    # Pastikan pygame diimpor di sini. Ini akan dicari di venv plugin.
+    from app.gui.utils import ToolTip # Impor ToolTip untuk lingkungan normal
     try:
         import pygame
     except ImportError:
-        pygame = None # Set ke None agar bisa diperiksa nanti
+        pygame = None
 
 class MP3PlayerPlugin(BasePlugin):
     """
-    Plugin ini memungkinkan pemutaran file audio (MP3, WAV, AAC) yang dipilih
-    dari Asset Manager FlowForge.
+    Plugin ini memungkinkan pemutaran file audio (MP3, WAV, AAC) secara acak
+    dari folder yang dipilih di Asset Manager, dan memiliki UI kustom sebagai tab.
     """
     def __init__(self, name: str = "MP3 Player",
-                 description: str = "Memutar file audio yang dipilih dari Asset Manager."):
+                 description: str = "Memutar file audio secara acak dari folder yang dipilih."):
         super().__init__(name, description)
-        self._settings = {
-            "audio_file_path": "", # Jalur file audio yang akan dipilih dari Asset Manager
-            "playback_duration_seconds": 0, # Durasi putar, 0 untuk penuh
-            "fade_out_duration_ms": 0 # Durasi fade out di akhir
-        }
+        self.music_folder_path: str = ""
+        self.current_playlist: List[str] = []
+        self.current_track_index: int = -1
+        self.is_playing_randomly: bool = False
+        self.stop_playback_event = threading.Event()
+        self.playback_thread: Optional[threading.Thread] = None
 
+        self._current_app_instance: Any = None # Akan disuntikkan dari MainApp
+
+    def set_app_services(self, app_instance: Any, settings_manager: Any, error_logger: Any):
+        """Menyuntikkan referensi ke MainApp dan layanan inti."""
+        super().set_app_services(app_instance, settings_manager, error_logger)
+        self._current_app_instance = app_instance # Simpan referensi app_instance
+
+    # Plugin ini tidak memerlukan konfigurasi GUI standar di Workflow Editor
+    # karena ia akan memiliki tab UI-nya sendiri.
     def get_gui_config_spec(self) -> List[PluginSettingSpec]:
-        """
-        Mendefinisikan spesifikasi untuk membangun GUI konfigurasi plugin ini.
-        """
-        return [
-            PluginSettingSpec(
-                field_name="audio_file_path",
-                label="Pilih File Audio",
-                type="filepath", # Ini akan memicu dialog pemilihan aset
-                asset_filter_category=["Music Tracks", "Efek Suara", "Audio Kustom"], # Contoh kategori yang diizinkan
-                file_selection_type="file",
-                default=self._settings["audio_file_path"],
-                tooltip="Pilih file audio (MP3, WAV, AAC) dari Asset Manager.",
-                required=True
-            ),
-            PluginSettingSpec(
-                field_name="playback_duration_seconds",
-                label="Durasi Putar (detik, 0=penuh)",
-                type="int",
-                default=self._settings["playback_duration_seconds"],
-                tooltip="Durasi file audio akan diputar dalam detik. Atur ke 0 untuk memutar seluruh file."
-            ),
-            PluginSettingSpec(
-                field_name="fade_out_duration_ms",
-                label="Durasi Fade Out (ms, 0=mati langsung)",
-                type="int",
-                default=self._settings["fade_out_duration_ms"],
-                tooltip="Durasi fade out audio di akhir pemutaran dalam milidetik. Atur ke 0 untuk mematikan langsung."
-            ),
-        ]
-
-    def validate_settings(self) -> bool:
-        """Memvalidasi pengaturan plugin."""
-        audio_path = self.settings.get("audio_file_path")
-        if not audio_path:
-            self._log("Validation Error: Jalur file audio tidak boleh kosong.")
-            return False
-        if not os.path.exists(audio_path):
-            self._log(f"Validation Error: File audio tidak ditemukan di jalur: {audio_path}")
-            return False
-        
-        # Periksa ekstensi file
-        file_ext = os.path.splitext(audio_path)[1].lower()
-        if file_ext not in [".mp3", ".wav", ".aac"]:
-            self._log(f"Validation Error: Hanya file MP3, WAV, atau AAC yang didukung. Ditemukan: {file_ext}")
-            return False
-
-        duration = self.settings.get("playback_duration_seconds")
-        if not isinstance(duration, int) or duration < 0:
-            self._log("Validation Error: Durasi putar harus angka bulat non-negatif.")
-            return False
-
-        fade_out = self.settings.get("fade_out_duration_ms")
-        if not isinstance(fade_out, int) or fade_out < 0:
-            self._log("Validation Error: Durasi fade out harus angka bulat non-negatif.")
-            return False
-
-        self._log("Pengaturan plugin MP3 Player divalidasi dan valid.")
-        return True
+        return []
 
     def run(self, data_payload: DataPayload, app_settings: Dict[str, Any]) -> DataPayload:
-        self._log("Memulai eksekusi plugin 'MP3 Player'.")
-
-        if pygame is None or not pygame.mixer.get_init():
-            self._log("ERROR: Pygame atau Pygame mixer tidak diinisialisasi. Pastikan Pygame terinstal di virtual environment plugin ini dan mixer diinisialisasi oleh aplikasi.")
-            app_settings.get("error_logger").log_error(
-                f"Plugin '{self.name}' gagal: Pygame atau mixer tidak diinisialisasi.", exc_info=False
-            )
-            data_payload.last_plugin_status[self.name] = {"success": False, "error_message": "Pygame mixer tidak diinisialisasi."}
-            raise ImportError("Pygame mixer tidak terinisialisasi untuk MP3 Player Plugin.")
-
-        audio_path = self.settings.get("audio_file_path")
-        duration = self.settings.get("playback_duration_seconds")
-        fade_out = self.settings.get("fade_out_duration_ms")
-
-        if not audio_path or not os.path.exists(audio_path):
-            self._log(f"ERROR: File audio tidak valid atau tidak ditemukan: {audio_path}")
-            app_settings.get("error_logger").log_error(
-                f"Plugin '{self.name}' gagal: File audio tidak ditemukan di {audio_path}", exc_info=False
-            )
-            data_payload.last_plugin_status[self.name] = {"success": False, "error_message": "File audio tidak ditemukan."}
-            return data_payload
-
-        try:
-            pygame.mixer.music.load(audio_path)
-            self._log(f"Memutar audio: {os.path.basename(audio_path)}")
-            pygame.mixer.music.play()
-
-            if duration > 0:
-                # Tambahkan sedikit jeda agar lagu mulai memutar sebelum timer dimulai
-                time.sleep(0.1) 
-                start_time = time.time()
-                while time.time() - start_time < duration:
-                    if not pygame.mixer.music.get_busy(): # Jika lagu sudah selesai duluan
-                        break
-                    time.sleep(0.1) # Cek setiap 100ms
-                
-                # Setelah durasi habis, lakukan fade out jika ada
-                if pygame.mixer.music.get_busy() and fade_out > 0:
-                    self._log(f"Melakukan fade out selama {fade_out} ms.")
-                    pygame.mixer.music.fadeout(fade_out)
-                    time.sleep(fade_out / 1000.0 + 0.1) # Tunggu fade out selesai + buffer
-                elif pygame.mixer.music.get_busy():
-                    pygame.mixer.music.stop() # Hentikan langsung jika tidak ada fade out
-                    self._log("Pemutaran dihentikan setelah durasi.")
-            else: # Putar sampai selesai jika duration 0
-                while pygame.mixer.music.get_busy():
-                    time.sleep(0.1) # Tunggu sampai lagu selesai
-                self._log("Pemutaran selesai (full duration).")
-
-            self._log(f"Selesai eksekusi plugin 'MP3 Player'.")
-            data_payload.last_plugin_status[self.name] = {"success": True, "message": f"File '{os.path.basename(audio_path)}' berhasil diputar."}
-
-        except Exception as e:
-            self._log(f"ERROR: Terjadi kesalahan saat memutar audio: {e}")
-            app_settings.get("error_logger").log_error(
-                f"Plugin '{self.name}' gagal memutar audio: {e}", exc_info=True
-            )
-            data_payload.last_plugin_status[self.name] = {"success": False, "error_message": f"Gagal memutar audio: {e}"}
-        finally:
-            if pygame.mixer.music.get_busy():
-                pygame.mixer.music.stop() # Pastikan audio berhenti sepenuhnya
-
+        """
+        Metode run() untuk plugin ini bisa kosong atau digunakan untuk memicu
+        aksi default jika plugin dipanggil dalam workflow.
+        Untuk konsep ini, kontrol utama ada di UI tab kustom.
+        """
+        self._log("Plugin 'MP3 Player' dipanggil dalam workflow. Silakan gunakan tab 'MP3 Player' untuk kontrol.")
+        data_payload.last_plugin_status[self.name] = {"success": True, "message": "Plugin hanya berfungsi melalui UI tab-nya."}
         return data_payload
 
-# Contoh penggunaan standalone untuk pengujian (Anda perlu file audio di folder yang sama)
+    # --- AWAL PERBAIKAN: Implementasi create_tab_ui ---
+    def create_tab_ui(self, master_notebook: ttk.Notebook, app_instance: Any) -> Optional[ttk.Frame]:
+        """
+        Membuat antarmuka pengguna kustom untuk plugin MP3 Player ini.
+        """
+        self._current_app_instance = app_instance # Pastikan referensi app_instance tersedia
+
+        tab_frame = ttk.Frame(master_notebook, padding=15)
+        tab_frame.grid_columnconfigure(0, weight=1)
+        tab_frame.grid_columnconfigure(1, weight=1) # Untuk kolom detail
+
+        # Bagian Pemilihan Folder Musik
+        folder_selection_frame = ttk.LabelFrame(tab_frame, text="Folder Musik", padding=10)
+        folder_selection_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0,10))
+        folder_selection_frame.grid_columnconfigure(0, weight=1)
+
+        self.music_folder_var = tk.StringVar(value=self.music_folder_path) # Inisialisasi dari atribut
+
+        ttk.Label(folder_selection_frame, text="Jalur Folder Musik:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        folder_entry = ttk.Entry(folder_selection_frame, textvariable=self.music_folder_var, state=DISABLED) # Biasanya read-only
+        folder_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
+        
+        select_folder_btn = ttk.Button(folder_selection_frame, text="Pilih Folder...", command=self._select_music_folder, bootstyle="info")
+        select_folder_btn.grid(row=0, column=2, padx=5, pady=5)
+        ToolTip(select_folder_btn, "Pilih folder yang berisi file musik Anda dari kategori aset.")
+
+        # Bagian Kontrol Pemutar
+        playback_control_frame = ttk.LabelFrame(tab_frame, text="Kontrol Pemutar", padding=10)
+        playback_control_frame.grid(row=1, column=0, sticky="nsew", pady=(0,10), padx=(0,5))
+        playback_control_frame.grid_columnconfigure(0, weight=1)
+
+        self.current_track_label = ttk.Label(playback_control_frame, text="Tidak ada lagu diputar", font=("Arial", 10, "bold"), bootstyle="primary")
+        self.current_track_label.pack(pady=10, fill=X, padx=5)
+
+        control_buttons_frame = ttk.Frame(playback_control_frame)
+        control_buttons_frame.pack(pady=5)
+        control_buttons_frame.grid_columnconfigure((0,1,2), weight=1)
+
+        play_random_btn = ttk.Button(control_buttons_frame, text="Putar Acak", command=self._play_random_track, bootstyle="success")
+        play_random_btn.grid(row=0, column=0, padx=5)
+        ToolTip(play_random_btn, "Mulai memutar lagu secara acak dari folder yang dipilih.")
+
+        next_track_btn = ttk.Button(control_buttons_frame, text="Lagu Berikutnya", command=self._play_next_random_track, bootstyle="info")
+        next_track_btn.grid(row=0, column=1, padx=5)
+        ToolTip(next_track_btn, "Lewati ke lagu acak berikutnya.")
+
+        stop_btn = ttk.Button(control_buttons_frame, text="Hentikan", command=self._stop_playback, bootstyle="danger")
+        stop_btn.grid(row=0, column=2, padx=5)
+        ToolTip(stop_btn, "Hentikan pemutaran audio.")
+
+        # Bagian Informasi Playlist
+        playlist_info_frame = ttk.LabelFrame(tab_frame, text="Info Playlist", padding=10)
+        playlist_info_frame.grid(row=1, column=1, sticky="nsew", pady=(0,10), padx=(5,0))
+        playlist_info_frame.grid_rowconfigure(0, weight=1)
+        playlist_info_frame.grid_columnconfigure(0, weight=1)
+
+        self.playlist_listbox = tk.Listbox(playlist_info_frame, font=("Arial", 9))
+        self.playlist_listbox.grid(row=0, column=0, sticky="nsew")
+        playlist_scrollbar = ttk.Scrollbar(playlist_info_frame, orient=VERTICAL, command=self.playlist_listbox.yview)
+        playlist_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.playlist_listbox.config(yscrollcommand=playlist_scrollbar.set)
+        
+        # Load ulang playlist saat tab dipilih (atau ketika folder diubah)
+        master_notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed_in_plugin)
+        
+        self._update_playlist_ui() # Perbarui UI playlist saat pertama kali dimuat
+        
+        return tab_frame
+
+    def _on_tab_changed_in_plugin(self, event):
+        """Dipanggil saat tab di notebook utama berubah."""
+        selected_tab_id = event.widget.select()
+        selected_tab_text = event.widget.tab(selected_tab_id, "text")
+        
+        if selected_tab_text == f"🔌 {self.name}": # Jika tab ini yang aktif
+            self._log(f"Tab '{self.name}' mendapatkan fokus. Memperbarui UI pemutar.")
+            self._update_playlist_ui()
+            # Juga bisa resume pemutaran otomatis di sini jika diinginkan
+            # if self.is_playing_randomly and not pygame.mixer.music.get_busy():
+            #     self._start_playback_thread() # Restart thread jika berhenti
+
+    def _select_music_folder(self):
+        """
+        Membuka dialog pemilihan folder aset yang terintegrasi dengan Asset Manager.
+        """
+        # Kita perlu meniru PluginSettingSpec untuk memicu dialog kustom
+        mock_spec = PluginSettingSpec(
+            field_name="music_folder",
+            label="Folder Musik",
+            type="folderpath",
+            asset_filter_category=["Music Tracks", "Efek Suara", "Audio Kustom"], # Kategori audio
+            file_selection_type="folder", # Pilih folder, bukan file
+            tooltip="Pilih folder yang berisi file musik dari Asset Manager."
+        )
+        
+        # Panggil dialog pemilihan aset dari WorkflowEditorTab (meskipun kita di MP3 Player)
+        # Ini tricky karena _open_asset_selection_dialog ada di WorkflowEditorTab
+        # Kita butuh referensi langsung ke metode itu
+        if hasattr(self._current_app_instance, 'workflow_editor_tab') and \
+           hasattr(self._current_app_instance.workflow_editor_tab, '_open_asset_selection_dialog'):
+            
+            # Kita ingin pengguna memilih FOLDER, bukan FILE
+            selected_paths = self._current_app_instance.workflow_editor_tab._open_asset_selection_dialog(
+                allowed_categories=mock_spec.asset_filter_category,
+                parent_dialog=self._current_app_instance, # Parent dialog bisa app utama
+                selection_type="folder", # Pastikan memilih folder
+                allow_multiple_selection=False # Hanya satu folder
+            )
+            
+            if selected_paths and len(selected_paths) > 0:
+                self.music_folder_path = selected_paths[0]
+                self.music_folder_var.set(self.music_folder_path)
+                self._log(f"Folder musik dipilih: {self.music_folder_path}")
+                self._load_playlist_from_folder()
+            else:
+                self._log("Pemilihan folder musik dibatalkan.")
+        else:
+            messagebox.showwarning("Fitur Tidak Tersedia", "Dialog pemilihan aset tidak dapat dibuka. Pastikan Workflow Editor Tab terinisialisasi.")
+            self._log("Peringatan: Tidak dapat mengakses _open_asset_selection_dialog dari WorkflowEditorTab.")
+
+    def _load_playlist_from_folder(self):
+        """Memuat daftar file audio dari folder yang dipilih."""
+        self.current_playlist = []
+        if not self.music_folder_path or not os.path.exists(self.music_folder_path):
+            self._log(f"Jalur folder musik tidak valid: {self.music_folder_path}")
+            self._update_playlist_ui()
+            return
+        
+        # Ekstensi yang diizinkan untuk pemutaran musik
+        allowed_audio_exts = [".mp3", ".wav", ".aac"] 
+
+        try:
+            for filename in os.listdir(self.music_folder_path):
+                file_path = os.path.join(self.music_folder_path, filename)
+                if os.path.isfile(file_path) and os.path.splitext(filename)[1].lower() in allowed_audio_exts:
+                    self.current_playlist.append(file_path)
+            random.shuffle(self.current_playlist) # Acak playlist
+            self._log(f"Playlist dimuat: {len(self.current_playlist)} lagu dari {self.music_folder_path}")
+        except Exception as e:
+            self._log(f"Error memuat playlist dari {self.music_folder_path}: {e}")
+            self._current_app_instance.error_logger.log_error(f"Failed to load playlist for MP3 Player: {e}", exc_info=True)
+
+        self._update_playlist_ui()
+
+    def _update_playlist_ui(self):
+        """Memperbarui Listbox playlist dan label lagu yang sedang diputar."""
+        self.playlist_listbox.delete(0, tk.END)
+        if not self.current_playlist:
+            self.current_track_label.config(text="Tidak ada lagu diputar")
+            self.playlist_listbox.insert(tk.END, "Tidak ada lagu di playlist.")
+            return
+
+        for i, track_path in enumerate(self.current_playlist):
+            display_name = os.path.basename(track_path)
+            self.playlist_listbox.insert(tk.END, f"{i+1}. {display_name}")
+        
+        if self.current_track_index != -1 and 0 <= self.current_track_index < len(self.current_playlist):
+            current_track_name = os.path.basename(self.current_playlist[self.current_track_index])
+            self.current_track_label.config(text=f"Memutar: {current_track_name}")
+            self.playlist_listbox.selection_clear(0, tk.END)
+            self.playlist_listbox.selection_set(self.current_track_index)
+            self.playlist_listbox.see(self.current_track_index) # Gulir ke lagu yang sedang diputar
+        else:
+            self.current_track_label.config(text="Siap memutar")
+
+    def _play_random_track(self):
+        """Memulai pemutaran lagu secara acak."""
+        if not self.current_playlist:
+            messagebox.showwarning("Playlist Kosong", "Tidak ada lagu di playlist. Harap pilih folder musik yang berisi file audio.", parent=self._current_app_instance)
+            self._log("Tidak dapat memutar: playlist kosong.")
+            return
+        
+        self._stop_playback() # Hentikan pemutaran sebelumnya jika ada
+        self.is_playing_randomly = True
+        self.stop_playback_event.clear()
+        self._start_playback_thread()
+
+    def _play_next_random_track(self):
+        """Memutar lagu acak berikutnya."""
+        self._stop_playback() # Hentikan lagu saat ini
+        self.is_playing_randomly = True
+        self.stop_playback_event.clear()
+        self._start_playback_thread()
+
+    def _start_playback_thread(self):
+        """Memulai thread pemutaran audio."""
+        if self.playback_thread and self.playback_thread.is_alive():
+            self._log("Thread pemutaran sudah berjalan.")
+            return
+        
+        self.playback_thread = threading.Thread(target=self._playback_loop, daemon=True)
+        self.playback_thread.start()
+        self._log("Thread pemutaran acak dimulai.")
+
+    def _playback_loop(self):
+        """Loop pemutaran acak yang berjalan di thread terpisah."""
+        if not pygame:
+            self._log("ERROR: Pygame tidak tersedia untuk pemutaran.")
+            self.is_playing_randomly = False
+            return
+            
+        while not self.stop_playback_event.is_set() and self.is_playing_randomly:
+            if not self.current_playlist:
+                self._log("Playlist kosong, menghentikan pemutaran.")
+                self.is_playing_randomly = False
+                break
+
+            # Pilih lagu secara acak
+            self.current_track_index = random.randrange(len(self.current_playlist))
+            current_track_path = self.current_playlist[self.current_track_index]
+            
+            self._current_app_instance.after(0, lambda: self._update_playlist_ui()) # Update UI dari main thread
+
+            try:
+                if pygame.mixer.music.get_busy():
+                    pygame.mixer.music.stop() # Hentikan lagu sebelumnya jika ada
+                pygame.mixer.music.load(current_track_path)
+                pygame.mixer.music.play()
+                self._log(f"Memutar: {os.path.basename(current_track_path)}")
+
+                # Tunggu sampai lagu selesai atau stop_event diatur
+                while pygame.mixer.music.get_busy() and not self.stop_playback_event.is_set():
+                    time.sleep(0.5) # Cek setiap 0.5 detik
+
+            except pygame.error as e:
+                self._log(f"Pygame Error saat memutar {os.path.basename(current_track_path)}: {e}")
+                self._current_app_instance.error_logger.log_error(f"Pygame error in MP3 Player: {e}", exc_info=True)
+                # Lewati lagu ini dan coba lagu berikutnya
+            except Exception as e:
+                self._log(f"Error tidak terduga saat memutar {os.path.basename(current_track_path)}: {e}")
+                self._current_app_instance.error_logger.log_error(f"Unexpected error in MP3 Player playback: {e}", exc_info=True)
+                
+            # Jika berhenti karena stop_playback_event, keluar dari loop
+            if self.stop_playback_event.is_set():
+                break
+            
+            # Beri jeda singkat sebelum lagu berikutnya
+            time.sleep(1) 
+        
+        self._log("Loop pemutaran acak dihentikan.")
+        self.is_playing_randomly = False
+        self._current_app_instance.after(0, lambda: self._update_playlist_ui()) # Update UI setelah loop berhenti
+
+    def _stop_playback(self):
+        """Menghentikan semua pemutaran."""
+        self.stop_playback_event.set()
+        if pygame and pygame.mixer.music.get_busy():
+            pygame.mixer.music.stop()
+            self._log("Pemutaran audio dihentikan.")
+        self.is_playing_randomly = False
+        self.current_track_index = -1 # Reset indeks
+        self._update_playlist_ui()
+    # --- AKHIR PERBAIKAN ---
+
+# Contoh penggunaan standalone untuk pengujian
 if __name__ == "__main__":
+    # Catatan: Pengujian standalone untuk plugin UI kustom agak kompleks
+    # karena membutuhkan lingkungan Tkinter dan Pygame yang berfungsi.
+    # Mocking di atas akan mencoba mensimulasikannya.
+    # Untuk pengujian menyeluruh, jalankan di aplikasi FlowForge.
+
+    print("--- Pengujian Plugin MP3 Player (Standalone) ---")
     mock_app = MockApp()
     plugin = MP3PlayerPlugin()
     plugin.set_app_services(mock_app, mock_app.settings_manager, mock_app.error_logger)
 
-    # Contoh penggunaan untuk pengujian. Anda perlu menempatkan file test.mp3
-    # atau test.wav di folder 'plugins/audio_playback/MP3PlayerPlugin/' Anda.
-    test_audio_file = os.path.join(os.path.dirname(__file__), "test_audio.mp3") # Ganti dengan nama file Anda
+    # Inisialisasi jendela Tkinter untuk menampilkan tab UI
+    root = ttk.Window(themename="superhero")
+    root.title("MP3 Player Standalone Test")
+    root.geometry("600x400")
 
-    if not os.path.exists(test_audio_file):
-        print(f"Peringatan: File audio pengujian '{test_audio_file}' tidak ditemukan. Melewatkan pengujian standalone.")
-    else:
-        print(f"\n--- Pengujian Plugin MP3 Player (Standalone) ---")
-        plugin.settings = {
-            "audio_file_path": test_audio_file,
-            "playback_duration_seconds": 5, # Putar 5 detik
-            "fade_out_duration_ms": 1000 # Fade out 1 detik
-        }
+    notebook = ttk.Notebook(root)
+    notebook.pack(fill=BOTH, expand=True)
 
-        try:
-            updated_payload = plugin.run(DataPayload(), {"app_instance": mock_app, "error_logger": mock_app.error_logger})
-            print(f"\nStatus Plugin Setelah Pengujian: {updated_payload.last_plugin_status.get(plugin.name)}")
-        except Exception as e:
-            print(f"\nPengujian standalone gagal karena error: {e}")
+    # Panggil create_tab_ui untuk mendapatkan frame tab
+    mp3_player_tab_frame = plugin.create_tab_ui(notebook, mock_app)
+    if mp3_player_tab_frame:
+        notebook.add(mp3_player_tab_frame, text="🔌 MP3 Player Test")
+
+    # Simulasi pemilihan folder (Anda harus memiliki folder ini secara fisik)
+    # Misalnya, buat folder 'C:\Temp\TestMusic' dan masukkan beberapa mp3/wav
+    test_music_folder = os.path.join(os.path.expanduser("~"), "Documents", "VidShort_Output", "Assets", "music_tracks")
+    if os.path.exists(test_music_folder):
+        plugin.music_folder_path = test_music_folder
+        plugin._load_playlist_from_folder()
+        plugin._update_playlist_ui() # Perbarui UI setelah memuat playlist
+
+    root.mainloop()
+
+    # Pastikan untuk menghentikan pemutaran jika thread masih berjalan setelah menutup jendela
+    plugin._stop_playback()
+    print("--- Pengujian MP3 Player Selesai ---")
