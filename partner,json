@@ -1,1 +1,18 @@
 
+[
+  {
+    "name": "FlowForge Official Plugins",
+    "url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/main/repository.json",
+    "description": "Repositori plugin resmi dari FlowForge."
+  },
+  {
+    "name": "Community Contributed Plugins",
+    "url": "https://raw.githubusercontent.com/anotheruser/community-plugins/main/repository.json",
+    "description": "Kumpulan plugin yang dikontribusikan oleh komunitas."
+  },
+  {
+    "name": "Experimental Plugins",
+    "url": "https://raw.githubusercontent.com/yourusername/experimental-flowforge-plugins/main/repository.json",
+    "description": "Plugin dalam tahap pengembangan awal, mungkin belum stabil."
+  }
+]
