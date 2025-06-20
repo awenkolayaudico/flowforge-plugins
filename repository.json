@@ -5,8 +5,8 @@
       "name": "gTTS",
       "version": "1.0.0",
       "developer": "FlowForge Community",
-      "description": "Article Generato",
-      "category": "Article",
+      "description": "text to speech",
+      "category": "Text to Speech",
       "python_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/gtts_plugin/gtts_plugin.py",
       "manifest_file_url": "https://raw.githubusercontent.com/awenkolayaudico/flowforge-plugins/refs/heads/main/gtts_plugin/plugin_manifest.json",
       "requirements": "gTTS==1.2.2"
