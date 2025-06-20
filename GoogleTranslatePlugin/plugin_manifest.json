@@ -1,1 +1,10 @@
-
+{
+    "plugin_name": "Google Translate",
+    "developer": "FlowForge Community",
+    "version": "1.0.0",
+    "permissions": {
+        "network_access": "Diperlukan untuk mengakses layanan Google Translate online.",
+        "file_read": "Tidak diperlukan.",
+        "file_write": "Tidak diperlukan."
+    }
+}
