@@ -21,7 +21,7 @@ if __name__ == "__main__":
         sys.path.append(project_root_dir)
     try:
         from plugins.base_plugin import BasePlugin
-        from core.data_models import DataPayload, PluginSettingSpec, ArticleData, CustomAssetCategory
+        from core.data_models import DataPayload, PluginSettingSpec, Article, CustomAssetCategory
         from app.gui.utils import ToolTip
         # Mocking app_settings dan logger untuk pengujian standalone
         class MockSettingsManager:
@@ -112,7 +112,7 @@ if __name__ == "__main__":
         sys.exit(1)
 else:
     from plugins.base_plugin import BasePlugin
-    from core.data_models import DataPayload, PluginSettingSpec, ArticleData, CustomAssetCategory
+    from core.data_models import DataPayload, PluginSettingSpec, Article, CustomAssetCategory
     from app.gui.utils import ToolTip
     from tkinter import messagebox
     try:
