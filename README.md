@@ -12,12 +12,12 @@ Dengan bangga saya mempersembahkan **FlowForge**, sebuah visi yang kini menjadi 
 
 Kami menciptakan FlowForge dengan filosofi "kekuatan di tangan pengguna". Artinya, bukan hanya sekadar alat otomatisasi, melainkan sebuah platform yang dapat Anda bentuk, kembangkan, dan sesuaikan tanpa batas. Dari tugas-tugas sederhana hingga alur kerja yang kompleks, FlowForge adalah kanvas digital Anda untuk menciptakan keajaiban.
 
-Yang paling penting, FlowForge adalah proyek **GRATIS dan OPEN-SOURCE**. Kami percaya pada kekuatan kolaborasi, transparansi, dan aksesibilitas untuk semua. Kami mengundang Anda, para pengembang, automator, dan pemikir kreatif, untuk bergabung dalam perjalanan ini. Jelajahi kodenya, berikan masukan, sumbangkan ide, dan bantu kami membentuk masa depan otomatisasi.
+Yang paling penting, FlowForge adalah proyek **GRATIS**.Kami mengundang Anda, para pengembang, automator, dan pemikir kreatif, untuk bergabung dalam perjalanan ini. berikan masukan, sumbangkan ide, dan bantu kami membentuk masa depan otomatisasi.
 
 Ini adalah awal dari sesuatu yang luar biasa. Selamat datang di era baru orkestrasi alur kerja bersama FlowForge\!
 
 Salam hormat,
-**Awen Audico**
+**Awenk Audico**
 
 -----
 
@@ -29,10 +29,10 @@ Bayangkan memiliki asisten digital pribadi yang bekerja tanpa lelah, 24/7, mengi
 
 ### **Mengapa FlowForge?**
 
-  * **Gratis & Open-Source:** Akses penuh ke semua fitur dan kode sumber tanpa biaya. Kami percaya pada kekuatan komunitas dan transparansi.
+  * **Gratis :** Akses penuh ke semua fitur tanpa biaya. Kami percaya pada kekuatan komunitas dan transparansi.
   * **Intuitif & Mudah Digunakan:** Desain antarmuka yang bersih dan user-friendly memungkinkan bahkan pemula sekalipun untuk mulai membangun alur kerja dalam hitungan menit.
   * **Sangat Fleksibel:** Dirancang untuk menangani beragam skenario, dari automasi sederhana hingga orkestrasi proses yang kompleks.
-  * **Ekstensibilitas Tanpa Batas:** Dengan sistem plugin yang modular, FlowForge dapat tumbuh dan beradaptasi dengan kebutuhan Anda. Buat plugin sendiri, gunakan yang sudah ada, atau jelajahi pasar plugin kami\!
+  * **Ekstensibilitas Tanpa Batas:** Dengan sistem plugin yang modular, FlowForge dapat tumbuh dan beradaptasi dengan kebutuhan Anda. Buat plugin sendiri, gunakan yang sudah ada\!
   * **Kontrol Penuh:** Lacak setiap aktivitas dengan log terperinci, riwayat eksekusi, dan manajemen pengaturan yang komprehensif.
 
 ## **Fitur Utama FlowForge**
@@ -48,17 +48,6 @@ Dashboard adalah pusat kendali Anda, memberikan gambaran sekilas tentang aktivit
   * **Log Aplikasi:** Sebuah tabel yang menampilkan semua aktivitas dan pesan log dari seluruh sistem FlowForge secara real-time. Dilengkapi dengan filter level (INFO, WARNING, ERROR, CRITICAL, DEBUG) dan fungsi pencarian teks untuk memudahkan diagnosa. Anda juga bisa membersihkan tampilan log ini kapan saja.
 
   * **Riwayat Eksekusi:** Tabel yang mencatat semua alur kerja yang pernah dijalankan, termasuk cap waktu, judul tugas/artikel, status terakhir, dan plugin sumber. Memungkinkan Anda meninjau kembali performa dan hasil otomatisasi Anda.
-
-  * **Sub-tab "Dukungan":**
-
-      * **Dukungan Finansial via PayPal:** Sebuah tombol khusus yang elegan untuk memberikan dukungan finansial kepada pengembang melalui PayPal. Kami sangat menghargai setiap kontribusi yang membantu FlowForge terus berkembang.
-      * **Gabung Komunitas Telegram:** Tombol interaktif yang akan membawa Anda langsung ke grup komunitas Telegram FlowForge. Tempat terbaik untuk bertanya, berbagi, dan berkolaborasi.
-      * **Laporan Bug via Email:** Tombol khusus untuk mengirim email laporan bug langsung ke tim pengembang. Kami berkomitmen untuk membuat FlowForge stabil dan bebas bug.
-      * **Tutorial YouTube:** Tombol yang akan membawa Anda ke saluran YouTube kami (atau yang Anda tentukan) untuk menonton tutorial dan panduan penggunaan FlowForge.
-
-  * **Sub-tab "Thanks To":** Merupakan ucapan terima kasih tulus kami kepada semua individu, tim, dan proyek open-source yang telah berkontribusi pada pengembangan FlowForge. Bagian ini juga merinci daftar pustaka dan teknologi utama yang membentuk fondasi aplikasi ini, seperti Python, `ttkbootstrap`, `Pydantic`, `Requests`, `BeautifulSoup4`, `Selenium`, `gTTS`, `Pillow`, `MoviePy`, `Pygame`, `Schedule`, `PyPDF2`, `Watchdog`, `SQLite3`, dan tidak lupa, kontribusi dari **Google Gemini AI** dalam proses pengembangan ini.
-
-  * **Sub-tab "Visi Misi":** Menjelaskan Visi dan Misi mulia FlowForge, yaitu menjadi platform terkemuka untuk otomatisasi alur kerja universal yang memberdayakan pengguna dengan kecerdasan, fleksibilitas, dan kontrol penuh.
 
 ### 2\. **Workflow Editor yang Kuat**
 
@@ -115,7 +104,7 @@ Konfigurasi FlowForge sesuai preferensi Anda:
 
 1.  **Unduh & Instal:**
 
-      * Kunjungi halaman [Rilis FlowForge di GitHub](https://www.google.com/search?q=https://github.com/YOUR_GITHUB_USERNAME/FlowForge/releases).
+      * Kunjungi halaman [Rilis FlowForge di GitHub](https://www.google.com/search?q=https://github.com/awenkolayaudico/FlowForge/releases).
       * Unduh versi `.exe` terbaru yang sesuai dengan sistem operasi Windows Anda.
       * Ekstrak file jika diperlukan dan jalankan `FlowForge.exe`. Tidak perlu instalasi Python atau dependensi terpisah\!
 
@@ -412,19 +401,13 @@ Setiap bentuk dukungan, baik itu kontribusi kode, laporan bug, ide fitur, atau d
 
 -----
 
-## **Lisensi**
-
-FlowForge didistribusikan di bawah [Lisensi MIT](https://www.google.com/search?q=https://github.com/YOUR_GITHUB_USERNAME/FlowForge/blob/main/LICENSE). Ini berarti Anda bebas untuk menggunakan, memodifikasi, dan mendistribusikan ulang kode ini, baik untuk tujuan pribadi maupun komersial.
-
------
-
 ## **Terima Kasih**
 
 Kami mengucapkan terima kasih yang sebesar-besarnya kepada semua individu, tim, dan proyek open-source yang telah berkontribusi langsung maupun tidak langsung dalam pengembangan FlowForge ini. Kami sangat berterima kasih kepada:
 
 **Pengembang & Tim Inti:**
 
-  * **DEV:** Awen Audico
+  * **DEV:** Awenk Audico
   * **Teams:** Teguh FX, Imam, Irzad
   * **Special Thanks:** Java\_FX
 
@@ -444,20 +427,7 @@ Kami mengucapkan terima kasih yang sebesar-besarnya kepada semua individu, tim, 
   * **PyPDF2:** Untuk pemrosesan file PDF.
   * **Watchdog:** Untuk memantau perubahan pada sistem file.
   * **SQLite3:** Sebagai database lokal yang ringan dan andal.
-  * **Google Gemini AI:** Untuk bantuan dan panduan yang tak ternilai dalam proses pengembangan dan pemecahan masalah kode.
   * **Dan banyak komunitas open-source lainnya yang tak terhingga kontribusinya\!**
 
 Tanpa kontribusi kolektif dari semua pihak ini, FlowForge tidak akan mungkin terwujud.
 
------
-
-**CATATAN PENTING UNTUK ANDA:**
-
-Sebelum meng-*upload* ini ke GitHub:
-
-1.  **Ganti `YOUR_GITHUB_USERNAME` dan `FlowForge`** di semua *badge* dan URL (misalnya, `https://github.com/awenkolayaudico/FlowForge`).
-2.  **Buat file `LICENSE`** di root repositori GitHub Anda (biasanya `LICENSE.md` atau `LICENSE.txt`) dan isikan dengan teks [Lisensi MIT](https://opensource.org/licenses/MIT).
-3.  **Pastikan URL YouTube tutorial Anda** adalah URL yang benar dan valid, bukan URL *placeholder* yang saya berikan.
-4.  **Siapkan file ikon PNG/GIF** yang kecil di folder `assets/icons/` seperti yang sudah kita bahas, agar logo tombol bisa tampil saat aplikasi dikemas.
-
-Semoga ini sangat membantu Anda, bro\! Dengan deskripsi yang komprehensif ini, FlowForge Anda akan menarik perhatian yang pantas diterimanya\!
