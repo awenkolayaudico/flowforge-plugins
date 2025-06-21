@@ -15,7 +15,7 @@ if __name__ == "__main__":
         sys.path.append(project_root_dir)
     try:
         from plugins.base_plugin import BasePlugin
-        from core.data_models import DataPayload, PluginSettingSpec, ArticleData
+        from core.data_models import DataPayload, PluginSettingSpec, Article
         # Mocking app_settings dan logger untuk pengujian standalone
         class MockSettingsManager:
             def get_app_setting(self, key: str, default: Any = None):
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         sys.exit(1)
 else:
     from plugins.base_plugin import BasePlugin
-    from core.data_models import DataPayload, PluginSettingSpec, ArticleData
+    from core.data_models import DataPayload, PluginSettingSpec, Article
 
 
 class ArticleGeneratorPlugin(BasePlugin):
@@ -177,7 +177,7 @@ class ArticleGeneratorPlugin(BasePlugin):
                 article_to_use = random.choice(articles_content)
 
             article_id = f"gen_art_{datetime.now().strftime('%Y%m%d%H%M%S%f')}_{self.generation_counter}"
-            new_article_data = ArticleData(
+            new_article_data = Article(
                 id=article_id,
                 title=title_to_use,
                 raw_content=article_to_use,
