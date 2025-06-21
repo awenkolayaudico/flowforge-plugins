@@ -5,7 +5,6 @@
 [](https://www.google.com/search?q=https://github.com/YOUR_GITHUB_USERNAME/FlowForge/blob/main/LICENSE)
 [](https://www.google.com/search?q=https://github.com/YOUR_GITHUB_USERNAME/FlowForge/issues)
 
-## Sambutan dari Awen Audico (Pengembang Utama)
 
 Halo para inovator dan automator\!
 
