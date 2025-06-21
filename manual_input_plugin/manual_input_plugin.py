@@ -5,12 +5,12 @@ from datetime import datetime
 
 # Impor komponen inti FlowForge
 from plugins.base_plugin import BasePlugin
-from core.data_models import DataPayload, ArticleData, PluginSettingSpec
+from core.data_models import DataPayload, Article, PluginSettingSpec
 
 class ManualInputPlugin(BasePlugin):
     """
     Plugin input yang berfungsi untuk menerima teks manual dari pengguna
-    dan mengubahnya menjadi sebuah ArticleData di dalam data payload.
+    dan mengubahnya menjadi sebuah Article di dalam data payload.
     """
     def __init__(self):
         """
@@ -56,9 +56,9 @@ class ManualInputPlugin(BasePlugin):
             data_payload.last_plugin_status[self.name] = {"success": False, "message": "Tidak ada teks masukan."}
             return data_payload
 
-        # Membuat objek ArticleData baru dari teks yang dimasukkan
+        # Membuat objek Article baru dari teks yang dimasukkan
         try:
-            new_article = ArticleData(
+            new_article = Article(
                 id=f"art_{uuid.uuid4()}",
                 title=f"Manual Input: {input_text[:50]}...", # Judul diambil dari 50 karakter pertama
                 url=None, # Tidak ada URL untuk input manual
