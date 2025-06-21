@@ -15,7 +15,7 @@ if __name__ == "__main__":
         sys.path.append(project_root_dir)
     try:
         from plugins.base_plugin import BasePlugin
-        from core.data_models import DataPayload, PluginSettingSpec, ArticleData
+        from core.data_models import DataPayload, PluginSettingSpec, Article
         # Mocking app_settings dan logger untuk pengujian standalone
         class MockSettingsManager:
             def get_all_design_presets(self): return []
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 else:
     # Mode normal saat berjalan di FlowForge
     from plugins.base_plugin import BasePlugin
-    from core.data_models import DataPayload, PluginSettingSpec, ArticleData
+    from core.data_models import DataPayload, PluginSettingSpec, Article
 
 # Hapus: try-except import Translator di sini.
 # Import Translator akan dilakukan di dalam metode run().
@@ -210,13 +210,13 @@ if __name__ == "__main__":
 
     # Contoh payload dengan satu artikel
     sample_payload = DataPayload(articles=[
-        ArticleData(
+        Article(
             id="test_1",
             title="Hello World",
             raw_content="This is a test sentence for translation. How are you today?",
             filtered_content="test sentence translation today",
         ),
-        ArticleData(
+        Article(
             id="test_2",
             title="Beautiful Nature",
             raw_content="The sun rises in the east. Birds are singing.",
