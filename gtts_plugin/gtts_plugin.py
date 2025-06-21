@@ -13,7 +13,7 @@ if __name__ == "__main__":
         sys.path.append(project_root_dir)
     try:
         from plugins.base_plugin import BasePlugin
-        from core.data_models import DataPayload, PluginSettingSpec, ArticleData
+        from core.data_models import DataPayload, PluginSettingSpec, Article
         class MockSettingsManager:
             def get_all_design_presets(self): return []
             def get_design_preset(self, name: str): return None
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         sys.exit(1)
 else:
     from plugins.base_plugin import BasePlugin
-    from core.data_models import DataPayload, PluginSettingSpec, ArticleData
+    from core.data_models import DataPayload, PluginSettingSpec, Article
 
 class GTTSTextToSpeechPlugin(BasePlugin):
     """
