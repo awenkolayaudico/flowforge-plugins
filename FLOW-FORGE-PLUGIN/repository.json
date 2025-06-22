@@ -15,6 +15,22 @@
       "developer": "Awenk Audico",
       "description": "MUSIC PLAYER",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/MUSIC%20PLAYER.zip"
+    },
+    {
+      "name": "Queue Tester",
+      "category": "TESTER",
+      "version": "1.0.0",
+      "developer": "Awenk Audico",
+      "description": "Queue Tester",
+      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/Queue%20Tester.zip"
+    },
+    {
+      "name": "Gobal Variable TesterR",
+      "category": "TESTER",
+      "version": "1.0.0",
+      "developer": "Awenk Audico",
+      "description": "Gobal Variable Tester",
+      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/Gobal%20Variable%20Tester.zip"
     }
   ]
 }
