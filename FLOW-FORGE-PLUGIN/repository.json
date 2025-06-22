@@ -1,1 +1,20 @@
-
+{
+  "plugins": [
+    {
+      "name": "SIMPLE POPUP",
+      "category": "POPUP",
+      "version": "1.0.0",
+      "developer": "Awenk Audico",
+      "description": "SIMPLE POPUP",
+      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/SIMPLE%20%20POPUP.zip"
+    },
+    {
+      "name": "Plugin Lain",
+      "category": "Contoh Lain",
+      "version": "1.0.0",
+      "developer": "Awenk Audico",
+      "description": "Deskripsi plugin kedua.",
+      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/main/Plugin_Lain.zip"
+    }
+  ]
+}
