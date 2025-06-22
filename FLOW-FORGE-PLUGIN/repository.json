@@ -9,12 +9,12 @@
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/SIMPLE%20%20POPUP.zip"
     },
     {
-      "name": "Plugin Lain",
-      "category": "Contoh Lain",
+      "name": "MUSIC PLAYER",
+      "category": "MUSIC",
       "version": "1.0.0",
       "developer": "Awenk Audico",
-      "description": "Deskripsi plugin kedua.",
-      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/main/Plugin_Lain.zip"
+      "description": "MUSIC PLAYER",
+      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/MUSIC%20PLAYER.zip"
     }
   ]
 }
