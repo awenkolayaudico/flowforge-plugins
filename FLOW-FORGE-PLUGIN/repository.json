@@ -49,11 +49,11 @@
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/SLEEP.zip"
     },
     {
-      "name": "SLEEP",
+      "name": "PEMICU ERROR",
       "category": "TESTER",
       "version": "1.0.0",
       "developer": "Awenk Audico",
-      "description": "SLEEP",
+      "description": "EMICU ERROR",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/pemicu_error.zip"
     }
   ]
