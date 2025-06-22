@@ -47,6 +47,14 @@
       "developer": "Awenk Audico",
       "description": "SLEEP",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/SLEEP.zip"
+    },
+    {
+      "name": "SLEEP",
+      "category": "TESTER",
+      "version": "1.0.0",
+      "developer": "Awenk Audico",
+      "description": "SLEEP",
+      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/pemicu_error.zip"
     }
   ]
 }
