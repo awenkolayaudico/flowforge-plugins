@@ -39,6 +39,14 @@
       "developer": "Awenk Audico",
       "description": "Article Generator",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/ArticleGeneratorPlugin.zip"
+    },
+    {
+      "name": "SLEEP",
+      "category": "TESTER",
+      "version": "1.0.0",
+      "developer": "Awenk Audico",
+      "description": "SLEEP",
+      "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/SLEEP.zip"
     }
   ]
 }
