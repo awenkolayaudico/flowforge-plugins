@@ -7,6 +7,11 @@
       "developer": "Awenk Audico",
       "description": "SIMPLE POPUP",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/SIMPLE%20%20POPUP.zip"
+	  "permissions": {
+        "network_access": "Required to fetch data from external APIs.",
+        "file_write": "Allows writing output to a file."
+      },
+      "price_type": "Free"
     },
     {
       "name": "MUSIC PLAYER",
@@ -15,6 +20,11 @@
       "developer": "Awenk Audico",
       "description": "MUSIC PLAYER",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/MUSIC%20PLAYER.zip"
+	  "permissions": {
+        "network_access": "Required to fetch data from external APIs.",
+        "file_write": "Allows writing output to a file."
+      },
+      "price_type": "Free"
     },
     {
       "name": "Queue Tester",
@@ -23,6 +33,11 @@
       "developer": "Awenk Audico",
       "description": "Queue Tester",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/Queue%20Tester.zip"
+	  "permissions": {
+        "network_access": "Required to fetch data from external APIs.",
+        "file_write": "Allows writing output to a file."
+      },
+      "price_type": "Free"
     },
     {
       "name": "Gobal Variable TesterR",
@@ -31,6 +46,11 @@
       "developer": "Awenk Audico",
       "description": "Gobal Variable Tester",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/Gobal%20Variable%20Tester.zip"
+	  "permissions": {
+        "network_access": "Required to fetch data from external APIs.",
+        "file_write": "Allows writing output to a file."
+      },
+      "price_type": "Free"
     },
     {
       "name": "Article Generator",
@@ -39,6 +59,11 @@
       "developer": "Awenk Audico",
       "description": "Article Generator",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/ArticleGeneratorPlugin.zip"
+	  "permissions": {
+        "network_access": "Required to fetch data from external APIs.",
+        "file_write": "Allows writing output to a file."
+      },
+      "price_type": "Free"
     },
     {
       "name": "SLEEP",
@@ -47,6 +72,11 @@
       "developer": "Awenk Audico",
       "description": "SLEEP",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/SLEEP.zip"
+	  "permissions": {
+        "network_access": "Required to fetch data from external APIs.",
+        "file_write": "Allows writing output to a file."
+      },
+      "price_type": "Free"
     },
     {
       "name": "PEMICU ERROR",
@@ -55,6 +85,11 @@
       "developer": "Awenk Audico",
       "description": "EMICU ERROR",
       "zip_url": "https://github.com/awenkolayaudico/flowforge-plugins/raw/refs/heads/main/FLOW-FORGE-PLUGIN/pemicu_error.zip"
+	  "permissions": {
+        "network_access": "Required to fetch data from external APIs.",
+        "file_write": "Allows writing output to a file."
+      },
+      "price_type": "Free"
     }
   ]
 }
